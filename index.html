@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Payout</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+<script src="app.js" defer></script>
+</head>
+<body>
+    <!-- ==========================================================================
+     AUTHENTICATION GATEWAY SCREENS (SIGN IN / SIGN UP)
+     ========================================================================== -->
+<div id="auth-gateway" class="auth-overlay">
+    <div class="auth-card">
+        <div class="auth-logo">
+            <div class="logo-icon" style="margin: 0 auto 10px auto;">✓</div>
+            <h2>Smart Payout</h2>
+            <p id="auth-subtitle">Welcome back! Log in to your workspace</p>
+        </div>
+
+        <!-- 1. SIGN IN FORM PANEL -->
+        <form id="signin-form" class="auth-form-panel">
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" id="login-email" placeholder="example@domain.com" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="login-password" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="profile-action-btn" style="margin-top:10px;">Sign In to Dashboard</button>
+            <p class="auth-toggle-text">Don't have an account? <span id="go-to-signup">Sign Up here</span></p>
+        </form>
+
+        <!-- 2. SIGN UP FORM PANEL (Hidden by Default) -->
+        <form id="signup-form" class="auth-form-panel" style="display: none;">
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" id="reg-name" placeholder="John Doe" required>
+            </div>
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" id="reg-email" placeholder="yourname@domain.com" required>
+            </div>
+            <div class="form-group">
+                <label>Password (Min. 6 characters)</label>
+                <input type="password" id="reg-password" placeholder="Create a secure password" minlength="6" required>
+            </div>
+            <div class="form-group">
+                <label>Referral Code (Optional)</label>
+                <input type="text" id="reg-ref" placeholder="e.g. paul123">
+            </div>
+            <button type="submit" class="profile-action-btn" style="background-color: #10b981; margin-top:10px;">Register Account</button>
+            <p class="auth-toggle-text">Already a platform member? <span id="go-to-signin">Sign In here</span></p>
+        </form>
+    </div>
+</div>
+    <!-- Main App Container -->
+    <div class="app-container">
+        
+        <header class="app-header">
+            <div class="logo-area">
+                <div class="logo-icon">✓</div>
+                <div>
+                    <h1>Smart Payout</h1>
+                    <p class="logo-sub">EARN • REFER • WITHDRAW</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <div class="notif-bell">🔔</div>
+                <div class="lang-selector">ENG ▾</div>
+            </div>
+        </header>
+
+        <div id="home-tab-section" class="tab-content active-tab">
+            
+            <div class="user-card">
+                <div class="avatar">P</div>
+                <div class="user-info">
+                    <p class="greeting">Welcome</p>
+                    <p class="username">Loading User...</p>
+                </div>
+                <div class="country-tag">NG Nigeria</div>
+            </div>
+
+            <div class="ticker-bar">
+                <span>LIVE • NIGERIA ✦ SMART PAYOUT — FREE PLATFORM ✦ WITHDRAWN: ₦ 0.00</span>
+            </div>
+
+            <div class="main-payout-card">
+                <div class="card-header-title">
+                    <span class="wallet-icon">💳</span>
+                    <span>TOTAL BALANCE</span>
+                </div>
+                <div class="balance-display">
+                    <span class="currency">₦</span>0.00
+                </div>
+                <p class="balance-note">Affiliate + Task earnings combined</p>
+
+                <div class="split-stats">
+                    <div class="stat-box">
+                        <span class="stat-label">👥 AFFILIATE</span>
+                        <span class="stat-amount">₦0.00</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">📝 TASKS</span>
+                        <span class="stat-amount">₦0.00</span>
+                    </div>
+                </div>
+
+                <button class="withdraw-btn" id="withdraw-action-btn">
+                    <span class="arrow-up">↑</span> Withdraw Earnings
+                </button>
+            </div>
+
+            <div class="mini-stats-row">
+                <div class="mini-box">
+                    <div class="mini-icon red-up">↑</div>
+                    <div>
+                        <p class="mini-label">TOTAL WITHDRAWN</p>
+                        <p class="mini-value">₦ 0.00</p>
+                    </div>
+                </div>
+                <div class="mini-box">
+                    <div class="mini-icon green-up">↗</div>
+                    <div>
+                        <p class="mini-label">TOTAL EARNED</p>
+                        <p class="mini-value" id="total-earned-display">₦ 0.00</p>
+                    </div>
+                </div>
+            </div>
+
+            <p class="section-divider-title">DAILY ACTIVE TASKS</p>
+            
+            <div class="daily-tip-box">
+                <div class="tip-icon">⚡</div>
+                <div class="tip-content">
+                    <p class="tip-title">DAILY TIP</p>
+                    <p class="tip-text">Check the task page daily — new tasks are added every 24 hours.</p>
+                </div>
+            </div>
+
+            <div class="activity-box">
+                <div class="activity-header">
+                    <div>
+                        <h4>Activity</h4>
+                        <p class="activity-sub">Last 7 days</p>
+                    </div>
+                    <span class="txs-badge">LIVE MONITOR</span>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-column"><div class="bar"></div><span>S</span></div>
+                    <div class="chart-column"><div class="bar"></div><span>S</span></div>
+                    <div class="chart-column"><div class="bar"></div><span>M</span></div>
+                    <div class="chart-column"><div class="bar"></div><span>T</span></div>
+                    <div class="chart-column"><div class="bar"></div><span>W</span></div>
+                    <div class="chart-column"><div class="bar bar-med"></div><span>T</span></div>
+                    <div class="chart-column"><div class="bar bar-full"></div><span>F</span></div>
+                </div>
+            </div>
+
+            <div class="bottom-banner">
+                <div class="banner-stat"><h3>100%</h3><p style="font-size:8px; color:#bca8df;">SECURE</p></div>
+                <div class="banner-stat"><h3>#0</h3><p style="font-size:8px; color:#bca8df;">RISK</p></div>
+                <div class="banner-stat"><h3>24/7</h3><p style="font-size:8px; color:#bca8df;">SUPPORT</p></div>
+            </div>
+
+            <div class="transactions-container">
+                <div class="transactions-header">
+                    <h3>Recent Transactions</h3>
+                    <span class="badge-latest">LATEST</span>
+                </div>
+                <div class="transaction-list">
+                    <p style="text-align:center; font-size:12px; color:#9ca3af; padding:10px;">Syncing server records...</p>
+                </div>
+            </div>
+        </div>
+        
+<div id="withdraw-tab-section" class="tab-content">
+            <p class="section-divider-title">REVENUE SETTLE CENTER</p>
+            
+            <div class="profile-settings-block" style="margin-bottom: 15px;">
+                <h4 style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>🏦 Linked Settlement Pathway</span>
+                    <span id="withdrawal-route-status" style="background: #10b981; color: #fff; font-size: 10px; padding: 4px 8px; border-radius: 20px;">Active</span>
+                </h4>
+                <div style="background: #f9fafb; padding: 12px; border-radius: 8px; border: 1px solid #e5e7eb; margin-top: 10px;">
+                    <p style="font-size: 13px; margin: 0 0 5px 0; color: #374151;"><strong>Bank:</strong> <span id="w-bank-name">---</span></p>
+                    <p style="font-size: 13px; margin: 0 0 5px 0; color: #374151;"><strong>Account Number:</strong> <span id="w-account-num">---</span></p>
+                    <p style="font-size: 13px; margin: 0; color: #374151;"><strong>Account Name:</strong> <span id="w-account-name">---</span></p>
+                </div>
+            </div>
+
+            <div class="profile-settings-block">
+                <h4>💸 Request Balance Settlement</h4>
+                <p style="font-size: 11px; color: #6b7280; margin-bottom: 15px;">Minimum threshold setup: ₦4,000.00. Processing attracts a 10% maintenance charge ledger entry deduction.</p>
+                
+                <form id="withdrawal-execution-form" onsubmit="event.preventDefault();">
+                    <div class="form-group">
+                        <label>Enter Amount to Withdraw (₦)</label>
+                        <input type="number" id="withdraw-amount-input" placeholder="Min. 4000" min="4000" required>
+                    </div>
+                    
+                    <div style="margin: 15px 0; font-size: 12px; color: #4b5563; background: #f0f2fa; padding: 12px; border-radius: 8px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                            <span>System Handling Fee (10%):</span>
+                            <span id="calc-fees">₦0.00</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-weight: bold; color: #1f2937;">
+                            <span>Net Total Withdrawal:</span>
+                            <span id="calc-net">₦0.00</span>
+                        </div>
+                    </div>
+
+                    <button type="button" id="execute-payout-btn" class="profile-action-btn" style="width:100%; background: #6322ef;">
+                        Withdraw Now
+                    </button>
+                </form>
+            </div>
+        </div>        <div id="tasks-tab-section" class="tab-content">
+            <p class="section-divider-title">ALL AVAILABLE OFFERS</p>
+            <div class="placeholder-card">
+                <h4 style="color:#260c4f; margin-bottom:6px;">Historical Task Logs</h4>
+                <p style="font-size:12px; color:#6b7280; line-height:1.4;">
+                    Your premium daily interactive tasks list completely resets every 24 hours. Complete your current homepage dashboard prompt to maintain your streak parameters!
+                </p>
+                <div class="task-board-container">
+                <div class="task-card-main">
+                    <div class="task-card-left">
+                        <span class="task-status-dot streaming">●</span>
+                        <div class="task-details">
+                            <h4 id="admin-task-title">Loading Active Task...</h4>
+                            <p>Reward: <span id="admin-task-reward" class="reward-highlight">₦0.00</span></p>
+                        </div>
+                    </div>
+                    <button id="task-action-btn" class="task-btn-start">Start Task</button>
+                </div>
+
+                <div id="inline-timer-box" class="inline-timer" style="display: none;">
+                    ⏳ Verifying interaction... Keep page open: <span id="inline-countdown">10</span>s
+                </div>
+
+                <button id="inline-claim-btn" style="display: none;">
+                    🎁 Claim Reward Payout
+                </button>
+            </div>
+
+            </div>
+        </div>
+
+        <div id="team-tab-section" class="tab-content">
+    <p class="section-divider-title">MY REFERRAL TEAM</p>
+    
+    <div class="placeholder-card">
+        <h4 style="color:#260c4f; margin-bottom:4px;">Affiliate Asset Center</h4>
+        <p style="font-size:12px; color:#6b7280; margin-bottom:14px;">Invite friends and monitor your network registration earnings instantly.</p>
+        
+        <div class="referral-link-box">
+            <span class="stat-label" style="font-size:10px; font-weight:bold; color:#6322ef;">YOUR UNIQUE REFERRAL LINK</span>
+            <input type="text" value="Loading link..." readonly id="ref-link-input">
+            
+            <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center; background: #f0f2fa; padding: 8px 12px; border-radius: 8px;">
+                <span style="font-size: 11px; color: #4b5563; font-weight: 600;">Referral Code: <span id="ref-code-display" style="color:#6322ef;">...</span></span>
+            </div>
+            
+            <button id="copy-ref-btn" class="withdraw-btn" style="padding:10px; margin-top:10px; font-size:12px;">Copy Invitation Link</button>
+        </div>
+    </div>
+
+    <p class="section-divider-title">REFERRED MEMBERS (<span id="team-count">0</span>)</p>
+    
+    <div class="team-list-container" id="real-team-list">
+        <p style="text-align:center; font-size:12px; color:#9ca3af; padding:15px;">Loading team downlines...</p>
+    </div>
+</div>
+
+    <div id="profile-tab-section" class="tab-content">
+            <p class="section-divider-title">MY ACCOUNT PORTAL</p>
+            
+            <div class="profile-dashboard-card" style="margin-bottom: 20px;">
+                <div class="p-dash-flex">
+                    <div class="avatar" style="width:50px; height:50px; font-size:18px;">P</div>
+                    <div>
+                        <h3 id="prof-dash-name">User Portfolio</h3>
+                        <p id="prof-dash-email" style="font-size:11px; color:#bca8df;">Authorized Member</p>
+                    </div>
+                </div>
+                <div class="p-dash-stats">
+                    <div class="p-stat-item">
+                        <span>WALLET BALANCE</span>
+                        <strong id="prof-wallet-bal">₦0.00</strong>
+                    </div>
+                    <div class="p-stat-item">
+                        <span>ACCOUNT STATUS</span>
+                        <strong style="color:#10b981;">VERIFIED</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="profile-settings-block" style="margin-bottom: 15px;">
+                <h4>📝 Edit User Details</h4>
+                <form id="user-details-form" onsubmit="event.preventDefault();">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="edit-fullname" placeholder="Full Name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="tel" id="edit-phone" placeholder="Enter phone number" required>
+                    </div>
+                    <div class="form-group disabled-group">
+                        <label>Email Address (Read-Only)</label>
+                        <input type="email" id="edit-email" disabled style="background:#f3f4f6; cursor:not-allowed;">
+                    </div>
+                    <button type="button" id="save-details-btn" class="profile-action-btn" style="width:100%;">Save Details</button>
+                </form>
+            </div>
+
+            <div class="profile-settings-block" style="margin-bottom: 15px;">
+                <h4>🔒 Security Credentials</h4>
+                <form id="password-change-form" onsubmit="event.preventDefault();">
+                    <div class="form-group">
+                        <label>Current Password</label>
+                        <input type="password" id="pass-current" placeholder="Current Password" required>
+                    </div>
+                    <div class="form-group">
+                        <label>New Password (Min. 6 characters)</label>
+                        <input type="password" id="pass-new" placeholder="New Password" minlength="6" required>
+                    </div>
+                    <button type="button" id="save-password-btn" class="profile-action-btn" style="width:100%; background:#4b5563;">Update Password</button>
+                </form>
+            </div>
+
+            <div class="profile-settings-block" style="margin-bottom: 25px;">
+                <h4>🏦 Settlement Bank Details</h4>
+                <form id="bank-route-form" onsubmit="event.preventDefault();">
+                    <div class="form-group">
+                        <label>Bank Name</label>
+                        <input type="text" id="bank-name" placeholder="Bank Name (e.g., GTBank)" required>
+                    </div>
+                    <div class="form-group">
+                        <label>10-Digit Account Number</label>
+                        <input type="text" id="bank-account-num" placeholder="10-Digit Account Number" maxlength="10" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Account Name Holder</label>
+                        <input type="text" id="bank-account-name" placeholder="Account Name Holder" required>
+                    </div>
+                    <button type="button" id="save-bank-btn" class="profile-action-btn" style="width:100%; background:#10b981;">Save Settlement Bank</button>
+                </form>
+            </div>
+
+            <div style="padding: 0 5px; margin-bottom: 80px;">
+                <button id="logout-btn" class="withdraw-btn" style="background-color: #ef4444; color: #ffffff; width: 100%; border: none; padding: 14px; border-radius: 12px; font-weight: bold; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <span>🚪</span> Safely Logout
+                </button>
+            </div>
+        </div>    
+        <nav class="bottom-nav">
+            <div class="nav-item active" id="nav-home">
+                <span class="nav-icon">🏠</span><span class="nav-text">Home</span>
+            </div>
+            <div class="nav-item" id="nav-tasks">
+                <span class="nav-icon">📝</span><span class="nav-text">Tasks</span>
+            </div>
+            <div class="nav-item" id="nav-team">
+                <span class="nav-icon">👥</span><span class="nav-text">Team</span>
+            </div>
+            <div class="nav-item" id="nav-profile">
+                <span class="nav-icon">👤</span><span class="nav-text">Profile</span>
+            </div>
+        </nav>
+
+    
+</body>
+</html>

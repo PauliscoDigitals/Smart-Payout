@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Control Panel - Administration</title>
+    <style>
+        :root {
+            --bg-primary: #f8fafc;
+            --panel-bg: #ffffff;
+            --text-main: #1e293b;
+            --accent-purple: #6322ef;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --border-color: #e2e8f0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+        }
+        .admin-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 25px;
+        }
+        h1 { margin: 0; font-size: 24px; color: #0f172a; }
+        .back-btn {
+            background: #475569;
+            color: #fff;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .metric-card {
+            padding: 20px;
+            border-radius: 12px;
+            color: #ffffff;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .panel-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 25px;
+        }
+        @media (min-width: 900px) {
+            .panel-grid { grid-template-columns: 1fr 1fr; }
+            .full-width { grid-column: span 2; }
+        }
+        .admin-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .admin-card h3 { margin-top: 0; margin-bottom: 15px; font-size: 18px; color: #0f172a; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;}
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #475569; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
+        .action-btn { width: 100%; padding: 12px; background: var(--accent-purple); color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .action-btn:hover { opacity: 0.9; }
+        .list-container { max-height: 350px; overflow-y: auto; background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; }
+        .user-row, .tx-row { background: #fff; border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; margin-bottom: 10px; font-size: 13px; }
+        .row-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .badge { font-size: 11px; padding: 3px 8px; border-radius: 4px; color: #fff; font-weight: bold; }
+        .btn-group { display: flex; gap: 5px; margin-top: 10px; flex-wrap: wrap; }
+        .btn-group button { border: none; padding: 6px 12px; border-radius: 4px; color: #fff; font-weight: bold; cursor: pointer; font-size: 11px; }
+        
+        /* Auth Shield Overlay */
+        #admin-auth-shield {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; color: #fff; z-index: 9999;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="admin-auth-shield">
+        <div style="background: #1e293b; padding: 30px; border-radius: 16px; border: 1px solid #334155; width: 100%; max-width: 360px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5); text-align: center;">
+            <span style="font-size: 40px; display: block; margin-bottom: 10px;">🛡️</span>
+            <h2 style="margin: 0 0 5px 0; font-size: 20px; color: #fff;">Admin Core Login</h2>
+            <p style="margin: 0 0 20px 0; font-size: 12px; color: #94a3b8;">Authorization clearance token required</p>
+            
+            <form id="admin-login-form" onsubmit="event.preventDefault();">
+                <div style="margin-bottom: 15px; text-align: left;">
+                    <label style="display: block; font-size: 11px; font-weight: 600; color: #94a3b8; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Admin Username</label>
+                    <input type="text" id="adm-auth-username" placeholder="Enter username" required style="width: 100%; padding: 12px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #fff; box-sizing: border-box; font-size: 14px;">
+                </div>
+                <div style="margin-bottom: 20px; text-align: left;">
+                    <label style="display: block; font-size: 11px; font-weight: 600; color: #94a3b8; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Security Key Password</label>
+                    <input type="password" id="adm-auth-password" placeholder="Enter password" required style="width: 100%; padding: 12px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #fff; box-sizing: border-box; font-size: 14px;">
+                </div>
+                <button type="button" id="adm-login-submit-btn" style="width: 100%; padding: 12px; background: #6322ef; color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; transition: background 0.2s;">
+                    Verify Security Clearance
+                </button>
+            </form>
+            <a href="index.html" style="display: block; margin-top: 15px; font-size: 12px; color: #94a3b8; text-decoration: none;">⬅️ Return to Main Site</a>
+        </div>
+    </div>
+
+    <div class="admin-container">
+        <header>
+            <h1>🛡️ Master Administration Control Console</h1>
+            <a href="index.html" class="back-btn">⬅️ Exit Console</a>
+        </header>
+
+        <div class="metrics-grid">
+            <div class="metric-card" style="background: #1e1b4b;">
+                <span style="font-size: 12px; opacity: 0.8; display: block; margin-bottom: 4px;">TOTAL REGISTERED MEMBERS</span>
+                <strong id="admin-total-users" style="font-size: 24px;">0</strong>
+            </div>
+            <div class="metric-card" style="background: #311042;">
+                <span style="font-size: 12px; opacity: 0.8; display: block; margin-bottom: 4px;">PENDING WITHDRAWALS</span>
+                <strong id="admin-pending-withdrawals" style="font-size: 24px;">0</strong>
+            </div>
+        </div>
+
+        <div class="panel-grid">
+            <div class="admin-card">
+                <h3>🚀 Deploy New Earn Task</h3>
+                <form id="admin-task-form" onsubmit="event.preventDefault();">
+                    <div class="form-group">
+                        <label>Task Description / Title</label>
+                        <input type="text" id="adm-task-title" placeholder="e.g., Subscribe to our Youtube channel" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Reward Payout (₦)</label>
+                        <input type="number" id="adm-task-reward" placeholder="e.g., 200" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Target Verification URL Link</label>
+                        <input type="url" id="adm-task-url" placeholder="https://youtube.com/..." required>
+                    </div>
+                    <button type="button" id="adm-submit-task-btn" class="action-btn">Publish Global Task</button>
+                </form>
+            </div>
+
+            <div class="admin-card">
+                <h3>⌛ Payout Requests Pending Review</h3>
+                <div id="admin-withdrawals-wrapper" class="list-container">
+                    <p style="text-align: center; color: #64748b; font-size: 13px; margin-top: 20px;">Checking pending cashout operations...</p>
+                </div>
+            </div>
+
+            <div class="admin-card full-width">
+                <h3>👥 Global User Registry Ledger & Account Adjustments</h3>
+                <div id="admin-users-wrapper" class="list-container" style="max-height: 500px;">
+                    <p style="text-align: center; color: #64748b; font-size: 13px; margin-top: 20px;">Fetching global ledger maps...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="admin.js" defer></script>
+</body>
+</html>
