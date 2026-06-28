@@ -149,15 +149,8 @@ function bindGlobalAdminActionButtons() {
             try {
                 publishTaskBtn.disabled = true; 
 publishTaskBtn.innerText = "Deploying task parameters...";
-
-const { error } = await supabaseClient.from('tasks').insert([{ 
-  task_title: title,        // <- changed from title
-  reward_amount: reward,    // <- this one matches already
-  task_link: url,           // <- this one matches already
-  setting_key: 'default'    // <- add this, or whatever value you need
-}]);
-
-if (error) throw error;
+                const { error } = await supabaseClient.from('tasks').insert([{ title, reward_amount: reward, task_link: url }]);
+                if (error) throw error;
 
                 alert("🎯 Task published directly to user application streams!");
                 titleInput.value = ''; rewardInput.value = ''; urlInput.value = '';
