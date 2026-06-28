@@ -327,7 +327,7 @@ async function loadAdminConfiguredTask() {
         const adminTaskReward = document.getElementById('admin-task-reward');
 
         if (error || !taskConfig) {
-            if (adminTaskTitle) adminTaskTitle.textContent = "Sponsor Ad Engagement";
+            if (adminTaskTitle) adminTaskTitle.textContent = "Join Our WhatsApp Group Chat";
             if (adminTaskReward) adminTaskReward.textContent = "₦150.00";
             return;
         }
@@ -338,7 +338,7 @@ async function loadAdminConfiguredTask() {
 }
 
 function startInlineTaskTimer() {
-    window.open("https://google.com", "_blank"); 
+    window.open("https://chat.whatsapp.com/H0d5myUs5El0Y2csraRLw8?s=cl&p=a&mlu=4", "_blank"); 
 
     if (taskActionBtn) taskActionBtn.style.display = "none";
     if (inlineTimerBox) inlineTimerBox.style.display = "block";
