@@ -18,7 +18,7 @@ let taskActionBtn, inlineTimerBox, inlineCountdown, inlineClaimBtn;
 // 2. CENTRAL RUNTIME AUTOMATION SYSTEM LIFECYCLE
 // ==========================================================================
 window.addEventListener('DOMContentLoaded', async () => {
-    // 1. Safely assign the DOM element nodes now that the page is fully ready
+    // 1. Safely assign ALL DOM element nodes first so they are fully initialized
     authGateway = document.getElementById('auth-gateway');
     signinForm = document.getElementById('signin-form');
     signupForm = document.getElementById('signup-form');
@@ -32,16 +32,61 @@ window.addEventListener('DOMContentLoaded', async () => {
     // 2. Initialize UI Component Event Listeners
     setupBottomNavbarNavigationSwitches();
     setupAuthPanelToggleSwitches();
-    setupAuthFormSubmissions(); 
-    
+    setupAuthFormSubmissions();
+
     // 3. Check if user is already authenticated securely
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    handleSessionTransitionRouting(session);
+    try {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        handleSessionTransitionRouting(session);
+    } catch (e) {
+        console.log("Auth session check skipped safely.");
+    }
 
     // Watch real-time platform logins/logouts
     supabaseClient.auth.onAuthStateChange((event, session) => {
         handleSessionTransitionRouting(session);
     });
+
+    // 4. READ REFERRAL PARAMS INSTANTLY & SAFELY
+    try {
+        const urlSearchParameters = new URLSearchParams(window.location.search);
+        const urlReferralCode = urlSearchParameters.get('ref');
+
+        if (urlReferralCode) {
+            console.log("Target user arrived via referral tracking node ID:", urlReferralCode);
+            
+            // Save to browser storage for the registration submission form to read later
+            localStorage.setItem('pending_signup_referrer', urlReferralCode);
+
+            // FORCE AUTOMATIC VIEW ROUTING TO SIGN-UP SCREEN 
+            if (signupForm && signinForm) {
+                signinForm.style.display = 'none';   // Hide sign-in container completely
+                signupForm.style.display = 'block';  // Pop open your sign-up form automatically!
+            }
+            
+            // Customize the subtitle securely now that it is initialized
+            if (authSubtitle) {
+                authSubtitle.innerText = "Create an account to join your referrer's team";
+            }
+
+            // Automatically fill the input field if it exists on the screen
+            const referralInputField = document.getElementById('reg-ref') || document.getElementById('referral-code-input') || document.querySelector('input[placeholder*="paul123"]');
+            if (referralInputField) {
+                referralInputField.value = urlReferralCode;
+            }
+        } else {
+            // Fallback: If they loaded the page without a URL parameter, check if a code was previously saved
+            const savedReferral = localStorage.getItem('pending_signup_referrer');
+            if (savedReferral) {
+                const referralInputField = document.getElementById('reg-ref') || document.getElementById('referral-code-input') || document.querySelector('input[placeholder*="paul123"]');
+                if (referralInputField) {
+                    referralInputField.value = savedReferral;
+                }
+            }
+        }
+    } catch (refError) {
+        console.error("Referral switch error handled safely:", refError.message);
+    }
 });
 
 function handleSessionTransitionRouting(session) {
@@ -75,6 +120,7 @@ function handleSessionTransitionRouting(session) {
         }
     }
 }
+
 // ==========================================================================
 // 3. SECURE AUTHENTICATION PROCESSING ENGINE
 // ==========================================================================
@@ -127,8 +173,9 @@ function setupAuthFormSubmissions() {
             const email = document.getElementById('reg-email').value.trim();
             const password = document.getElementById('reg-password').value;
             
-            const urlParams = new URLSearchParams(window.location.search);
-            const referralCodeApplied = urlParams.get('ref') || document.getElementById('reg-ref').value.trim();
+            // Checks the local input input node or falls back safely to browser cache storage values
+            const refField = document.getElementById('reg-ref');
+            const referralCodeApplied = (refField ? refField.value.trim() : '') || localStorage.getItem('pending_signup_referrer');
             const submitBtn = signupForm.querySelector('button');
 
             try {
@@ -153,6 +200,9 @@ function setupAuthFormSubmissions() {
                     if (referralCodeApplied) {
                         await processReferralBonusPayout(referralCodeApplied);
                     }
+
+                    // Clear token store now that subscription context lifecycle is complete
+                    localStorage.removeItem('pending_signup_referrer');
 
                     alert("🎉 Account registered successfully! Access granted.");
                 }
@@ -344,9 +394,15 @@ async function setupLiveReferralTab() {
         if (error || !profile || !profile.referral_code) return;
 
         const userCode = profile.referral_code;
-        const realInvitationLink = `${window.location.origin}${window.location.pathname}?ref=${userCode}`;
+        
+        // Handles URL string splicing dynamically
+        let currentBaseUrl = window.location.href.split('?')[0].split('#')[0];
+        if (!currentBaseUrl.endsWith('/')) {
+            currentBaseUrl += '/';
+        }
+        const realInvitationLink = `${currentBaseUrl}?ref=${userCode}`;
 
-        const refLinkInput = document.getElementById('ref-link-input');
+        const refLinkInput = document.getElementById('ref-link-input') || document.getElementById('referral-link-input');
         const refCodeDisplay = document.getElementById('ref-code-display');
         const copyRefBtn = document.getElementById('copy-ref-btn');
 
@@ -394,6 +450,19 @@ function renderTeamListHTML(members) {
             </div>
         `);
     });
+}
+
+function generateUserReferralLink(userUniqueId) {
+    let currentBaseUrl = window.location.href.split('?')[0].split('#')[0];
+    if (!currentBaseUrl.endsWith('/')) {
+        currentBaseUrl += '/';
+    }
+    const finalReferralLink = `${currentBaseUrl}?ref=${userUniqueId}`;
+    
+    const refInput = document.getElementById('referral-link-input') || document.getElementById('ref-link-input');
+    if (refInput) {
+        refInput.value = finalReferralLink;
+    }
 }
 
 // ==========================================================================
@@ -640,6 +709,7 @@ async function executeWithdrawalLedgerTransaction(currentWalletBalance) {
         if (btn) { btn.disabled = false; btn.innerText = "Request Disbursal Process"; }
     }
 }
+
 // ==========================================================================
 // FALLBACK IDENTITY PROFILE ACTIONS (Ensures app.js never breaks on clicks)
 // ==========================================================================
@@ -703,6 +773,7 @@ async function executePasswordVerificationSequence() {
         if (btn) { btn.disabled = false; btn.innerText = "Update Password"; }
     }
 }
+
 async function verifyAdministrativePrivileges() {
     if (!CURRENT_USER_ID) return;
     try {
